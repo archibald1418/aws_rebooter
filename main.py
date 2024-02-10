@@ -6,8 +6,9 @@ from telebot import TeleBot
 from dotenv import load_dotenv
 from typing import Final
 
-if not load_dotenv(".env"):
-    raise Exception("No envs are set")
+# if not load_dotenv(".env"):
+    # TODO: validation of envs (hint: use a custom config, pydantic may help)
+    # raise Exception("No envs are set")
 
 
 BOT_TOKEN = os.environ["BOT_TOKEN"]
