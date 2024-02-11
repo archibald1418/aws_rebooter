@@ -22,6 +22,7 @@ const options = {
   // scriptPath
 };
 
+console.error("Test::")
 
 let shell = new PythonShell('main.py', options)  
 
