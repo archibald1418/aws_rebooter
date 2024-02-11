@@ -5,7 +5,5 @@
     "python-shell": "^5.0.0"
   },
   "type": "module",
-  "scripts":{
-    "install":""
-  }
+  "scripts":{}
 }

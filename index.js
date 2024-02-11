@@ -2,21 +2,21 @@ import {PythonShell} from 'python-shell';
 import 'dotenv/config'; // load .env variables
 const {exec} = await import('child_process');
 
-
-// PythonShell.runString('x=1+1;print(x)', null).then(messages=>{
-//   console.log('finished');
-// });
-
-exec('which python', (err, stdout, stderr) => {
+const handler = (err, stdout, stderr) => {
   if (err) {
     console.error(err);
   } else {
-  console.log(stdout);
+    console.log(stdout);
   }
-});
+};
+
+// exec('which python', handler);
+// exec(`source aws_tg/bin/activate`, handler)
+// exec('which python', handler);
 
 const options = {
   mode : "text",
+  pythonPath: './aws_tg/bin/python3',
   pythonOptions: ['-u'],
   // args
   // scriptPath
