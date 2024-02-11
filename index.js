@@ -25,9 +25,11 @@ const options = {
 
 let shell = new PythonShell('main.py', options)  
 
+console.log("Python shell created")
+
 // Capture python's stdout 
 shell.on('message', function(message) {
-  console.log(message)
+  console.log(`Python: ${message}`)
 });
 
 
