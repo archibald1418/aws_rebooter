@@ -45,8 +45,11 @@ def on_reboot(msg: Message):
     data: dict = response.json()
     bot.send_message(chat_id, f"Response: {str(data)}\n")
 
+
 def run():
+    print("Bot is running...")
     bot.infinity_polling()
+    print("Bot has finished running")
 
 
 def main():
@@ -54,4 +57,7 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except KeyboardInterrupt as e:
+        print(e)
