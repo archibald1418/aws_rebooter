@@ -4,5 +4,8 @@
     "lodash": "^4.17.21",
     "python-shell": "^5.0.0"
   },
-  "type": "module"
+  "type": "module",
+  "scripts":{
+    "install":""
+  }
 }
