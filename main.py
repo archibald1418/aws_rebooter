@@ -2,14 +2,16 @@ import time
 import os
 import requests
 from telebot.types import Message
-from telebot import TeleBot
+from telebot import TeleBot, logger
 from dotenv import load_dotenv
 from typing import Final
+import logging
 
 # if not load_dotenv(".env"):
     # TODO: validation of envs (hint: use a custom config, pydantic may help)
     # raise Exception("No envs are set")
 
+logger.setLevel(logging.DEBUG)
 
 BOT_TOKEN = os.environ["BOT_TOKEN"]
 LAMBDA_URL = os.environ["LAMBDA_URL"]
@@ -45,8 +47,11 @@ def on_reboot(msg: Message):
     data: dict = response.json()
     bot.send_message(chat_id, f"Response: {str(data)}\n")
 
+
 def run():
+    print("Bot is running...")
     bot.infinity_polling()
+    print("Bot has finished running")
 
 
 def main():
@@ -54,4 +59,7 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except KeyboardInterrupt as e:
+        print(e)
