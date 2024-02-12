@@ -44,16 +44,16 @@ function exec_python(){
 */
 
 const app = express();
-const port = 3000;
+const port = 3001;
 
 app.get('/', (req, res) => {
   console.log("Express: i am up");
-  res.json( {
+  res.send( JSON.stringify({
     who: "your mom",
     status : "gay"
-  });
+  }, null, 2);
 });
-
+ 
 function bootstrap()
 {
   app.listen(port);
