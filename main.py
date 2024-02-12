@@ -29,7 +29,12 @@ MSGS: Final[dict] = {
 }
 
 bot = TeleBot(BOT_TOKEN, threaded=False)
-# TODO: file or kv for tg users
+# TODO: file or kv for tracking of users
+
+
+#TODO: add webhook
+
+
 
 @bot.message_handler(commands=['start'])
 def on_start(msg:Message):
