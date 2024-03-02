@@ -1,8 +1,8 @@
-import {PythonShell} from 'python-shell';
-import 'dotenv/config'; // load .env variables
-import express from 'express';
+import { PythonShell } from "python-shell";
+import "dotenv/config"; // load .env variables
+import express from "express";
 
-const {exec} = await import('child_process');
+const { exec } = await import("child_process");
 
 const handler = (err, stdout, stderr) => {
   if (err) {
@@ -13,51 +13,45 @@ const handler = (err, stdout, stderr) => {
 };
 
 const options = {
-  mode : "text",
-  pythonPath: './aws_tg/bin/python3',
-  pythonOptions: ['-u'],
+  mode: "text",
+  pythonPath: process.env.PYTHONPATH,
+  pythonOptions: ["-u"], // unbuffered output (allows to intercept python's prints)
   // args
   // scriptPath
 };
 
-function exec_python(){
+function exec_python() {
+  let shell = new PythonShell("main.py", options);
 
-  let shell = new PythonShell('main.py', options)  
+  console.log("Python shell created");
 
-  console.log("Python shell created")
-
-  // Capture python's stdout 
-  shell.on('message', function(message) {
-    console.log(`Python: ${message}`)
+  // Capture python's stdout
+  shell.on("message", function (message) {
+    console.log(`Python: ${message}`);
   });
 
-  shell.end( (err, conde, signal) => {
-    if (err)
-      throw err;
-    console.log(err)
-    console.log('Code = ${code}, signal = ${signal}');
+  shell.end((err, code, signal) => {
+    if (err) throw err;
+    console.log(err);
+    console.log(`Code = ${code}, signal = ${signal}`);
   });
-};
+}
 
-/* 
-** Express app ------------------------------------------------------
-*/
+/*
+ ** Express app ------------------------------------------------------
+ */
 
 const app = express();
 const port = 3001;
 
-app.get('/', (req, res) => {
+app.get("/", (req, res) => {
   console.log("Express: i am up");
-  res.send( JSON.stringify({
-    who: "your mom",
-    status : "gay"
-  }, null, 2);
+  res.send(JSON.stringify({ who: "your mom", status: "gay" }, null, 2));
 });
- 
-function bootstrap()
-{
+
+function bootstrap() {
   app.listen(port);
   exec_python();
 }
 
-bootstrap()
+bootstrap();
