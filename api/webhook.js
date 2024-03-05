@@ -1,6 +1,8 @@
 module.exports = (request, response) => {
   console.log(request.body)
-    response.send(JSON.stringify({
+    response
+    .status(200)
+    .send(JSON.stringify({
       body: request.body,
       query: request.query,
       cookies: request.cookies

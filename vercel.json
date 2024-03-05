@@ -1,0 +1,6 @@
+{
+  "version": 2,
+  "devCommand": "uvicorn --host 0.0.0.0 --app-dir ./api --env-file ./.env main:app --reload",
+  "builds": [{ "src": "api/main.py", "use": "@vercel/python" }],
+  "routes": [{ "src": "/(.*)", "dest": "api/main.py" }]
+}

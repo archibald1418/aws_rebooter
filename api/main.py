@@ -3,7 +3,7 @@ import os
 import requests
 import logging
 from requests import Response
-from telebot.types import Message
+from telebot.types import Message, Update, User
 from telebot import TeleBot, logger
 from dotenv import load_dotenv
 from typing import Final
@@ -13,14 +13,18 @@ from fastapi import FastAPI
     # TODO: validation of envs (hint: use a custom config, pydantic may help)
     # raise Exception("No envs are set")
 
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 BOT_TOKEN = os.environ["BOT_TOKEN"]
 LAMBDA_URL = os.environ["LAMBDA_URL"]
 
 WEBHOOK_HOST = os.environ["WEBHOOK_HOST"]
+NGROK_TUNNEL_URL='https://9f23-89-180-60-117.ngrok-free.app'
 WEBHOOK_PORT = 8080
-WEBHOOK_URL = f'{WEBHOOK_HOST}/api'
+WEBHOOK_PATH = f"/bot/{BOT_TOKEN}"
+WEBHOOK_URL = f"{NGROK_TUNNEL_URL}{WEBHOOK_PATH}"
+# WEBHOOK_URL = f'{WEBHOOK_HOST}/api/webhook'
+
 # WEBHOOK_URL_BASE = f"{WEBHOOK_HOST}:{WEBHOOK_PORT}"
 # WEBHOOK_URL_PATH = "/{}/".format(BOT_TOKEN)
 # WEBHOOK_URL = WEBHOOK_URL_BASE + WEBHOOK_URL_PATH
@@ -65,10 +69,24 @@ def on_reboot(msg: Message):
     data: dict = response.json()
     bot.send_message(chat_id, f"Response: {str(data)}\n")
 
-@app.post(WEBHOOK_URL)
+@app.post(WEBHOOK_PATH)
 def process_webhook(update: dict):
     print("WEBHOOK CAUGHT!")
     print(update)
+    updates = []
+    if update and (upd := Update.de_json(update)):
+        updates.append(upd)
+    bot.process_new_updates(updates)
+
+@app.get("/")
+def root() -> dict:
+    return {
+        "Hello": {
+            "Fast": {
+                "Api": {}
+            }
+        }
+    }
 
 
 def run():
@@ -78,12 +96,14 @@ def run():
     )
     print("Bot is running...")
     # bot.infinity_polling()
-    print("Bot has finished running")
-
+    # print("Bot has finished running")
 
 def main():
     run()
 
+@app.on_event("startup")
+def on_startup():
+    run()
 
 if __name__ == '__main__':
     try:
