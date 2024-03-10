@@ -8,6 +8,7 @@ from telebot import TeleBot, logger
 from dotenv import load_dotenv
 from typing import Final
 from fastapi import FastAPI
+import uvicorn
 
 # if not load_dotenv(".env"):
     # TODO: validation of envs (hint: use a custom config, pydantic may help)
@@ -51,6 +52,7 @@ bot = TeleBot(BOT_TOKEN, threaded=False)
 #TODO: add webhook
 app = FastAPI(docs=None, redoc_url=None)
 
+#TODO: use django or flask as wsgi server
 
 
 @bot.message_handler(commands=['start'])
@@ -89,7 +91,7 @@ def root() -> dict:
     }
 
 
-def run():
+def run_bot():
     bot.remove_webhook()
     bot.set_webhook(
         url=WEBHOOK_URL
@@ -98,12 +100,17 @@ def run():
     # bot.infinity_polling()
     # print("Bot has finished running")
 
+def run_wsgi():
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    print("Wsgi is running!..")
+
 def main():
-    run()
+    run_bot()
+    run_wsgi()
 
 @app.on_event("startup")
 def on_startup():
-    run()
+    main()
 
 if __name__ == '__main__':
     try:
