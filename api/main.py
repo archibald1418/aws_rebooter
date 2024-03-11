@@ -10,7 +10,7 @@ from typing import Final
 from fastapi import FastAPI
 import uvicorn
 
-# if not load_dotenv(".env"):
+# if not load_dotenv("../.env"):
     # TODO: validation of envs (hint: use a custom config, pydantic may help)
     # raise Exception("No envs are set")
 
@@ -20,10 +20,11 @@ BOT_TOKEN = os.environ["BOT_TOKEN"]
 LAMBDA_URL = os.environ["LAMBDA_URL"]
 
 WEBHOOK_HOST = os.environ["WEBHOOK_HOST"]
-NGROK_TUNNEL_URL='https://9f23-89-180-60-117.ngrok-free.app'
+NGROK_TUNNEL_URL='https://90b9-89-180-60-117.ngrok-free.app'
+# NGROK_TUNNEL_URL="https://tgbot.free.beeceptor.com" # dev webhook test
 WEBHOOK_PORT = 8080
 WEBHOOK_PATH = f"/bot/{BOT_TOKEN}"
-WEBHOOK_URL = f"{NGROK_TUNNEL_URL}{WEBHOOK_PATH}"
+WEBHOOK_URL = f"{NGROK_TUNNEL_URL}{WEBHOOK_PATH}" # well, suffix could be anything, doesn't really matter
 # WEBHOOK_URL = f'{WEBHOOK_HOST}/api/webhook'
 
 # WEBHOOK_URL_BASE = f"{WEBHOOK_HOST}:{WEBHOOK_PORT}"
@@ -73,12 +74,13 @@ def on_reboot(msg: Message):
 
 @app.post(WEBHOOK_PATH)
 def process_webhook(update: dict):
-    print("WEBHOOK CAUGHT!")
-    print(update)
-    updates = []
-    if update and (upd := Update.de_json(update)):
-        updates.append(upd)
-    bot.process_new_updates(updates)
+    print("WEBHOOK CAUGHT UPDATE!")
+    if not update:
+        raise Exception("Update is empty: (webhook seems to have malfunctioned)")
+    print(repr(update))
+    if not (upd := Update.de_json(update)):
+        raise Exception("Update is unparseable")
+    bot.process_new_updates([upd])
 
 @app.get("/")
 def root() -> dict:
@@ -96,24 +98,26 @@ def run_bot():
     bot.set_webhook(
         url=WEBHOOK_URL
     )
-    print("Bot is running...")
+    print("Bot is set up...")
     # bot.infinity_polling()
     # print("Bot has finished running")
 
 def run_wsgi():
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
     print("Wsgi is running!..")
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    print("Wsgi has finished running!..")
 
 def main():
     run_bot()
     run_wsgi()
 
-@app.on_event("startup")
-def on_startup():
-    main()
+# @app.on_event("startup")
+# def on_startup():
+#     main()
 
 if __name__ == '__main__':
     try:
+        print("HEY")
         main()
     except KeyboardInterrupt as e:
         print(e)
