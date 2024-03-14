@@ -92,6 +92,7 @@ def run_wsgi():
 # APP
 @app.get("/")
 def root() -> dict:
+    run_bot()
     return {
         "Hello": {
             "Fast": {
