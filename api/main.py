@@ -10,9 +10,6 @@ from typing import Final
 from fastapi import FastAPI
 import uvicorn
 
-# if not load_dotenv("../.env"):
-    # TODO: validation of envs (hint: use a custom config, pydantic may help)
-    # raise Exception("No envs are set")
 
 logger.setLevel(logging.INFO)
 
@@ -21,13 +18,19 @@ LAMBDA_URL = os.environ["LAMBDA_URL"]
 
 BUILD = os.environ["BUILD"]
 
-TUNNEL_URL=''
+TUNNEL_URL = 'https://90b9-89-180-60-117.ngrok-free.app'
+WEBHOOK_HOST = 'https://aws-rebooter.vercel.app'
+
+# Dev build code
 if BUILD == 'dev':
-    TUNNEL_URL='https://90b9-89-180-60-117.ngrok-free.app'
+    WEBHOOK_HOST = TUNNEL_URL
+    if not load_dotenv("../.env"):
+        raise Exception("No envs are set")
+        #TODO: validation of envs (hint: use a custom config, pydantic may help)
 
 WEBHOOK_PORT = 8080
 WEBHOOK_PATH = f"/bot/{BOT_TOKEN}"
-WEBHOOK_URL = f"{TUNNEL_URL}{WEBHOOK_PATH}" # well, suffix could be anything, doesn't really matter
+WEBHOOK_URL = f"{WEBHOOK_HOST}{WEBHOOK_PATH}" # well, suffix could be anything, doesn't really matter
 
 # WEBHOOK_URL_BASE = f"{WEBHOOK_HOST}:{WEBHOOK_PORT}"
 # WEBHOOK_URL_PATH = "/{}/".format(BOT_TOKEN)
