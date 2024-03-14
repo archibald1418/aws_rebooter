@@ -74,26 +74,6 @@ def on_reboot(msg: Message):
     data: dict = response.json()
     bot.send_message(chat_id, f"Response: {str(data)}\n")
 
-@app.post(WEBHOOK_PATH)
-def process_webhook(update: dict):
-    print("WEBHOOK CAUGHT UPDATE!")
-    if not update:
-        raise Exception("Update is empty: (webhook seems to have malfunctioned)")
-    print(repr(update))
-    if not (upd := Update.de_json(update)):
-        raise Exception("Update is unparseable")
-    bot.process_new_updates([upd])
-
-@app.get("/")
-def root() -> dict:
-    return {
-        "Hello": {
-            "Fast": {
-                "Api": {}
-            }
-        }
-    }
-
 
 def run_bot():
     bot.remove_webhook()
@@ -108,6 +88,28 @@ def run_wsgi():
     print("Wsgi is running!..")
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
     print("Wsgi has finished running!..")
+
+# APP
+@app.get("/")
+def root() -> dict:
+    return {
+        "Hello": {
+            "Fast": {
+                "Api": {}
+            }
+        }
+    }
+
+@app.post(WEBHOOK_PATH)
+def process_webhook(update: dict):
+    print("WEBHOOK CAUGHT UPDATE!")
+    if not update:
+        raise Exception("Update is empty: (webhook seems to have malfunctioned)")
+    print(repr(update))
+    if not (upd := Update.de_json(update)):
+        raise Exception("Update is unparseable")
+    bot.process_new_updates([upd])
+
 
 def main():
     run_bot()
