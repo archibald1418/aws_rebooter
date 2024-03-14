@@ -19,13 +19,15 @@ logger.setLevel(logging.INFO)
 BOT_TOKEN = os.environ["BOT_TOKEN"]
 LAMBDA_URL = os.environ["LAMBDA_URL"]
 
-WEBHOOK_HOST = os.environ["WEBHOOK_HOST"]
-NGROK_TUNNEL_URL='https://90b9-89-180-60-117.ngrok-free.app'
-# NGROK_TUNNEL_URL="https://tgbot.free.beeceptor.com" # dev webhook test
+BUILD = os.environ["BUILD"]
+
+TUNNEL_URL=''
+if BUILD == 'dev':
+    TUNNEL_URL='https://90b9-89-180-60-117.ngrok-free.app'
+
 WEBHOOK_PORT = 8080
 WEBHOOK_PATH = f"/bot/{BOT_TOKEN}"
-WEBHOOK_URL = f"{NGROK_TUNNEL_URL}{WEBHOOK_PATH}" # well, suffix could be anything, doesn't really matter
-# WEBHOOK_URL = f'{WEBHOOK_HOST}/api/webhook'
+WEBHOOK_URL = f"{TUNNEL_URL}{WEBHOOK_PATH}" # well, suffix could be anything, doesn't really matter
 
 # WEBHOOK_URL_BASE = f"{WEBHOOK_HOST}:{WEBHOOK_PORT}"
 # WEBHOOK_URL_PATH = "/{}/".format(BOT_TOKEN)
