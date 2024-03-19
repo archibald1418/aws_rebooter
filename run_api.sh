@@ -1,2 +1,2 @@
 #!/bin/bash
-eval "$(grep -E '^[^#]' .env | tr '\n' ' ') ./venv/bin/python api/main.py"
+eval "$(grep -E '^[^#]' .env.dev | tr '\n' ' ') ./venv/bin/python api/main.py"

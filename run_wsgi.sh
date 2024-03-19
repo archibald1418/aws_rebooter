@@ -1,3 +1,3 @@
 #!/bin/bash
 
-uvicorn --host 0.0.0.0 --port 8000 --app-dir ./api --env-file .env main:app --reload
+uvicorn --host 0.0.0.0 --port 8000 --app-dir ./api --env-file .env.dev main:app --reload
