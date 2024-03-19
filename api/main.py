@@ -2,6 +2,7 @@ import time
 import os
 import requests
 import logging
+from pprint import pprint
 from requests import Response
 from telebot.types import Message, Update, User
 from telebot import TeleBot, logger
@@ -15,26 +16,24 @@ logger.setLevel(logging.INFO)
 
 BOT_TOKEN = os.environ["BOT_TOKEN"]
 LAMBDA_URL = os.environ["LAMBDA_URL"]
-
 BUILD = os.environ["BUILD"]
 
-TUNNEL_URL = 'https://90b9-89-180-60-117.ngrok-free.app'
-WEBHOOK_HOST = 'https://aws-rebooter.vercel.app'
+HOST = os.environ.get("HOST", 'localhost') 
+
+WEBHOOK_HOST = HOST
 
 # Dev build code
 if BUILD == 'dev':
+    TUNNEL_URL = os.environ["TUNNEL_URL"] 
     WEBHOOK_HOST = TUNNEL_URL
-    if not load_dotenv("../.env"):
-        raise Exception("No envs are set")
+    #if not load_dotenv("../.env.dev"):
+    #    raise Exception("No envs are set")
         #TODO: validation of envs (hint: use a custom config, pydantic may help)
 
 WEBHOOK_PORT = 8080
 WEBHOOK_PATH = f"/bot/{BOT_TOKEN}"
 WEBHOOK_URL = f"{WEBHOOK_HOST}{WEBHOOK_PATH}" # well, suffix could be anything, doesn't really matter
 
-# WEBHOOK_URL_BASE = f"{WEBHOOK_HOST}:{WEBHOOK_PORT}"
-# WEBHOOK_URL_PATH = "/{}/".format(BOT_TOKEN)
-# WEBHOOK_URL = WEBHOOK_URL_BASE + WEBHOOK_URL_PATH
 WEBHOOK_LISTEN = "0.0.0.0"
 
 print(f"===== {WEBHOOK_URL} =====")
@@ -55,11 +54,7 @@ bot = TeleBot(BOT_TOKEN, threaded=False)
 # TODO: file or kv for tracking of users
 
 
-#TODO: add webhook
 app = FastAPI(docs=None, redoc_url=None)
-
-#TODO: use django or flask as wsgi server
-
 
 @bot.message_handler(commands=['start'])
 def on_start(msg:Message):
@@ -92,10 +87,10 @@ def run_wsgi():
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
     print("Wsgi has finished running!..")
 
+
 # APP
 @app.get("/")
 def root() -> dict:
-    run_bot()
     return {
         "Hello": {
             "Fast": {
@@ -109,19 +104,22 @@ def process_webhook(update: dict):
     print("WEBHOOK CAUGHT UPDATE!")
     if not update:
         raise Exception("Update is empty: (webhook seems to have malfunctioned)")
-    print(repr(update))
     if not (upd := Update.de_json(update)):
         raise Exception("Update is unparseable")
+    pprint(upd)
+    print(type(upd))
     bot.process_new_updates([upd])
 
 
 def main():
-    run_bot()
+    print("MAIN")
+    #run_bot()
     run_wsgi()
 
-# @app.on_event("startup")
-# def on_startup():
-#     main()
+@app.on_event("startup")
+def on_startup():
+    print("on_startup..")
+    run_bot()
 
 if __name__ == '__main__':
     try:
