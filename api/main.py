@@ -11,6 +11,8 @@ from typing import Final
 from fastapi import FastAPI
 import uvicorn
 
+from contextlib import asynccontextmanager
+
 
 logger.setLevel(logging.INFO)
 
@@ -54,7 +56,6 @@ bot = TeleBot(BOT_TOKEN, threaded=False)
 # TODO: file or kv for tracking of users
 
 
-app = FastAPI(docs=None, redoc_url=None)
 
 @bot.message_handler(commands=['start'])
 def on_start(msg:Message):
@@ -88,7 +89,18 @@ def run_wsgi():
     print("Wsgi has finished running!..")
 
 
+# App lifespan
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("Start app lifecycle")
+    run_bot()
+    yield
+    print("End app lifecycle")
+
+
 # APP
+app = FastAPI(docs=None, redoc_url=None, lifespan=lifespan)
+
 @app.get("/")
 def root() -> dict:
     return {
@@ -116,10 +128,11 @@ def main():
     #run_bot()
     run_wsgi()
 
-@app.on_event("startup")
-def on_startup():
-    print("on_startup..")
-    run_bot()
+# @app.on_event("startup")
+# def on_startup():
+#     print("on_startup..")
+#     run_bot()
+
 
 if __name__ == '__main__':
     try:
