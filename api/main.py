@@ -18,7 +18,7 @@ BOT_TOKEN = os.environ["BOT_TOKEN"]
 LAMBDA_URL = os.environ["LAMBDA_URL"]
 BUILD = os.environ["BUILD"]
 
-HOST = os.environ.get("HOST", 'localhost') 
+HOST = os.environ.get("HOST", '') 
 
 WEBHOOK_HOST = HOST
 
