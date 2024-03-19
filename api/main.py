@@ -18,8 +18,7 @@ BOT_TOKEN = os.environ["BOT_TOKEN"]
 LAMBDA_URL = os.environ["LAMBDA_URL"]
 BUILD = os.environ["BUILD"]
 
-HOST = os.environ.get("HOST", '') 
-
+HOST = os.environ.get("HOST", None) 
 WEBHOOK_HOST = HOST
 
 # Dev build code
@@ -32,7 +31,7 @@ if BUILD == 'dev':
 
 WEBHOOK_PORT = 8080
 WEBHOOK_PATH = f"/bot/{BOT_TOKEN}"
-WEBHOOK_URL = f"{WEBHOOK_HOST}{WEBHOOK_PATH}" # well, suffix could be anything, doesn't really matter
+WEBHOOK_URL = f"{WEBHOOK_HOST or ''}{WEBHOOK_PATH}" # well, suffix could be anything, doesn't really matter
 
 WEBHOOK_LISTEN = "0.0.0.0"
 
