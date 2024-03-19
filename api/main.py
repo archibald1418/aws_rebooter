@@ -35,6 +35,7 @@ WEBHOOK_URL = f"{WEBHOOK_HOST or ''}{WEBHOOK_PATH}" # well, suffix could be anyt
 
 WEBHOOK_LISTEN = "0.0.0.0"
 
+print("HAHA PRINT")
 print(f"===== {WEBHOOK_URL} =====")
 
 MSGS: Final[dict] = {
