@@ -18,7 +18,7 @@ logger.setLevel(logging.INFO)
 
 BOT_TOKEN = os.environ["BOT_TOKEN"]
 LAMBDA_URL = os.environ["LAMBDA_URL"]
-BUILD = os.environ["BUILD"]
+BUILD = os.environ.get("BUILD", 'prod')
 
 HOST = os.environ.get("HOST", None) 
 WEBHOOK_HOST = HOST
@@ -101,14 +101,8 @@ async def lifespan(app: FastAPI):
 # APP
 app = FastAPI(docs=None, redoc_url=None, lifespan=lifespan)
 
-go = False
 @app.get("/")
 def root() -> dict:
-    global go
-    if not go:
-        run_bot()
-        go = True # A hack to bypass Vercel's ban on startup event
-
     return {
         "Hello": {
             "Fast": {
