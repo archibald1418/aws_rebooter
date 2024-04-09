@@ -1,39 +1,46 @@
 all: up
 
 DOCKER := sudo docker
+COMPOSE := ${DOCKER} compose
 
 up:
-	${DOCKER} compose up -d
-upbuild:
-	${DOCKER} compose up --build -d
-down:
-	${DOCKER} compose down
-fdown:
-	${DOCKER} compose down -v
-stop:
-	${DOCKER} compose stop
-start:
-	${DOCKER} compose start
-ps:
-	${DOCKER} compose ps
+	${COMPOSE} up -d 
 
-debug: fdown
-	${DOCKER} compose -f docker-compose.debug.yaml up --build -d
+upd: upbuild
+upbuild:
+	${COMPOSE} up --build -d
+down:
+	${COMPOSE} down
+fdown:
+	${COMPOSE} down -v
+stop:
+	${COMPOSE} stop
+start:
+	${COMPOSE} start
+rawdog:
+	${COMPOSE} up --build --no-cache -d
+ps:
+	${COMPOSE} ps
 
 logs:
-	${DOCKER} compose logs
+	${COMPOSE} logs
 
 to_nginx:
-	${DOCKER} exec -it nginx /bin/bash
+	${COMPOSE} exec -it nginx /bin/bash
 
 clean: down
-	-${DOCKER} down -v
-	-${DOCKER} stop $$(${DOCKER} ps -aq)
-	-${DOCKER} rm $$(${DOCKER} ps -aq)
-fclean: clean
-	yes 'y' | ${DOCKER} system prune -a
+	-${COMPOSE} down -v
+	-${COMPOSE} stop $$(${COMPOSE} ps -aq)
+	-${COMPOSE} rm $$(${COMPOSE} ps -aq)
+bclean:
 	yes 'y' | ${DOCKER} builder prune -a
+fclean: clean bclean
+	yes 'y' | ${DOCKER} system prune -a
 
+re: clean all
+
+images:
+	${COMPOSE} image ls
 
 logsf:
-	${DOCKER} compose logs --follow
+	${COMPOSE} logs --follow
