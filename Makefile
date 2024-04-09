@@ -1,0 +1,46 @@
+all: up
+
+DOCKER := sudo docker
+COMPOSE := ${DOCKER} compose
+
+up:
+	${COMPOSE} up -d 
+
+upd: upbuild
+upbuild:
+	${COMPOSE} up --build -d
+down:
+	${COMPOSE} down
+fdown:
+	${COMPOSE} down -v
+stop:
+	${COMPOSE} stop
+start:
+	${COMPOSE} start
+rawdog:
+	${COMPOSE} up --build --no-cache -d
+ps:
+	${COMPOSE} ps
+
+logs:
+	${COMPOSE} logs
+
+to_nginx:
+	${COMPOSE} exec -it nginx /bin/bash
+
+clean: down
+	-${COMPOSE} down -v
+	-${COMPOSE} stop $$(${COMPOSE} ps -aq)
+	-${COMPOSE} rm $$(${COMPOSE} ps -aq)
+bclean:
+	yes 'y' | ${DOCKER} builder prune -a
+fclean: clean bclean
+	yes 'y' | ${DOCKER} system prune -a
+
+re: clean all
+
+images:
+	${COMPOSE} image ls
+
+logsf:
+	${COMPOSE} logs --follow
