@@ -13,6 +13,7 @@ import uvicorn
 
 from contextlib import asynccontextmanager
 
+print("DEV")
 
 logger.setLevel(logging.INFO)
 
