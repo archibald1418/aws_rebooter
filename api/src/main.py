@@ -40,6 +40,7 @@ def on_reboot(msg: Message):
     data: dict = response.json()
     bot.send_message(chat_id, f"Response: {str(data)}\n")
 
+# TODO: class-based auth middlewares that raise errors and send a msg
 
 def run_bot():
     bot.remove_webhook()
@@ -59,10 +60,13 @@ def run_wsgi():
 # App lifespan
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    assert app 
     print("Start app lifecycle")
     run_bot()
+    init_db(db, DB_FILENAME)
     yield
     print("End app lifecycle")
+    db.close()
 
 
 # APP
@@ -94,18 +98,13 @@ def process_webhook(update: dict):
 
 def main():
     print("MAIN")
-    #run_bot()
+    init_db(db, DB_FILENAME)
     run_wsgi()
-
-# @app.on_event("startup")
-# def on_startup():
-#     print("on_startup..")
-#     run_bot()
 
 
 if __name__ == '__main__':
     try:
-        print("HEY")
+        print("MAIN")
         main()
     except KeyboardInterrupt as e:
         print(e)
