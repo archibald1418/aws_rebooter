@@ -1,41 +1,41 @@
 from typing import Protocol, Any
 from dto import UserDto
 from entity import UserEntity
-from sqlite3 import Connection, Cursor
+import sqlite3
 from db import read_user, create_user
+from config import DB_FILENAME
 
-class Authorizer(Protocol):
-    
-    def check_user(self, dto: UserDto) -> bool: ...
-    def encode(self, key: Any) -> int: ...
+class NotAuthorized(Exception):
+    def __init__(self):
+        self.message = 'You are not regisered to use this bot'
+        super().__init__(self.message)
 
-class NormalAuthorizer(Authorizer):
+class Forbidden(Exception):
+    def __init__(self):
+        self.message = "You are not allowed to invoke this command"
+        super().__init__(self.message)
+
+
+class Authorizer:
     
-    def __init__(self, db: Connection):
-        self.db_cursor: Cursor = db.cursor()
+    __admin_cmds = {'register', 'get'}
 
     def encode(self, key: Any) -> int:
         return hash(key)
 
     def find_user(self, dto: UserDto) -> UserEntity | None:
         encoded_id = self.encode(dto.id)
-        target_user: UserEntity | None = read_user(self.db_cursor, encoded_id)
-        return target_user
+        with sqlite3.connect(DB_FILENAME) as conn:
+            conn.row_factory = UserEntity
+            return read_user(conn.cursor(), encoded_id)
         
-    def check_user(self, dto: UserDto) -> bool:
+    def check_admin(self, dto: UserDto) -> bool:
         target_user: UserEntity | None = self.find_user(dto)
-        if not target_user:
-            return False
-        return True
+        assert target_user
+        return bool(target_user.admin)
 
     def register_user(self, dto: UserDto) -> UserEntity:
-        new_user: UserEntity = create_user(self.db_cursor, self.encode(dto.id))
+        with sqlite3.connect(DB_FILENAME) as conn:
+            conn.row_factory = UserEntity
+            new_user: UserEntity = create_user(conn.cursor(), self.encode(dto.id))
         return new_user
-        
-class AdminAuthorizer(NormalAuthorizer):
-    
-    def check_user(self, dto: UserDto):
-        target_user: UserEntity | None = self.find_user(dto)
-        if not target_user or not target_user.admin:
-            return False
-        return True

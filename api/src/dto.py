@@ -2,6 +2,7 @@ from telebot.types import Update, Message
 from datetime import datetime 
 from sqlite3 import Cursor
 from typing import Self, cast
+from pprint import pprint
 
 
 class UserDto:
@@ -23,10 +24,14 @@ class UserDto:
     
     @classmethod
     def from_tgupdate(cls, tgupdate: Update) -> Self:
+        print('fromtgupdate', tgupdate)
         msg: Message = cast(Message, tgupdate.message)
+        return cls.from_message(msg)
+        
+    @classmethod
+    def from_message(cls, msg: Message) -> Self:
         return cls(
                     name=msg.from_user.first_name,
                     id=msg.from_user.id,
                     dttm=msg.date
         )
-        
