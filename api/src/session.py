@@ -1,11 +1,13 @@
 from typing import TypeAlias, Literal, NoReturn
-from dto import UserDto
-from authorizer import Authorizer, NotAuthorized
-from entity import UserEntity
 from sqlite3 import DatabaseError
+from modules.dto import UserDto
+from modules.entity import UserEntity
+from modules.exceptions import NotAuthorized, Forbidden
+from authorizer import Authorizer
 
 Role: TypeAlias = dict[Literal['admin'], bool]
 Session: TypeAlias = dict[int, Role]
+
 
 
 class Sessionizer:

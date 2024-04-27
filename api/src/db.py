@@ -1,7 +1,7 @@
 import sqlite3
 from sqlite3 import Cursor
-from dto import UserDto
-from entity import UserEntity, UserModel
+from modules.dto import UserDto
+from modules.entity import UserEntity, UserModel
 from config import ADMIN
 
 
@@ -16,12 +16,14 @@ def create_schema(cursor: Cursor):
 def drop_schema(cursor: Cursor):
     cursor.execute(f'''DROP TABLE IF EXISTS User''')
     
-def create_user(cursor: Cursor, id_hash: int, admin: bool = False) -> UserEntity:
-    new_user = UserEntity(id_hash, admin)
-    cursor.execute(
-            '''INSERT INTO User (id_hash, admin) VALUES (?, ?)''',
-            new_user.as_tuple()
-    )
+def create_user(dto: UserDto, db_filename: str, is_admin: bool = False) -> UserEntity:
+    new_user = UserEntity(dto.id, is_admin)
+    with sqlite3.connect(db_filename) as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+                '''INSERT INTO User (id_hash, admin) VALUES (?, ?)''',
+                new_user.as_tuple()
+        )
     '''TODO:
             - all reads should use UserEntity as row_factory
                 all writes should create and return a UserEntity (data-access layer)
@@ -47,9 +49,11 @@ def read_admin(cursor: Cursor, user_id: int) -> UserEntity:
     # TODO: row_factory as factory for select statements
     return cursor.fetchone()
 
-def read_users(cursor: Cursor) -> list[UserEntity]:
-    cursor.execute(f'''SELECT * from User''')
-    return cursor.fetchall()
+def read_users(db_filename: str) -> list[UserEntity]:
+    with sqlite3.connect(db_filename) as conn:
+        cursor = conn.cursor()
+        cursor.execute(f'''SELECT * from User''')
+        return cursor.fetchall()
     
 def init_admin(cursor: Cursor):
     cursor.execute(f'''

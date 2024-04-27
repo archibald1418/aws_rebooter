@@ -1,6 +1,10 @@
 import os
 from sqlite3 import Connection
 from typing import Final
+from dotenv import load_dotenv
+
+if not load_dotenv("../../.env.dev"):
+    raise Exception("No envs are set")
 
 BOT_TOKEN = os.environ["BOT_TOKEN"]
 LAMBDA_URL = os.environ["LAMBDA_URL"]
@@ -13,8 +17,7 @@ WEBHOOK_HOST = HOST
 if BUILD.lower().startswith("dev"):
     TUNNEL_URL = os.environ["TUNNEL_URL"]
     WEBHOOK_HOST = TUNNEL_URL
-    # if not load_dotenv("../.env.dev"):
-    #    raise Exception("No envs are set")
+    
 
 WEBHOOK_PORT = 8080
 WEBHOOK_PATH = f"/bot/{BOT_TOKEN}"

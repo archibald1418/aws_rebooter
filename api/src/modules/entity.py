@@ -11,3 +11,6 @@ class UserEntity:
     
     def as_tuple(self) -> tuple[int, bool]:
         return (self.id_hash, self.admin)
+
+    def __repr__(self):
+        return f'<User({self.id_hash}, {self.admin})>'
