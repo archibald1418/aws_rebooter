@@ -8,6 +8,8 @@ from db import read_user, create_user # TODO: repo class
 class Authorizer:
     
     admin_cmds = frozenset({'register', 'get'})
+    regular_cmds = frozenset({'start', 'help', 'reboot'})
+    cmds = admin_cmds | regular_cmds
 
     def __init__(self, db: str):
         self.db = db # TODO: inject repo class
