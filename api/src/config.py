@@ -36,7 +36,8 @@ MSGS: Final[dict] = {
 }
 
 DB_FILENAME = "users.db" if BUILD.startswith("prod") else "dev.db"
-ADMIN = os.environ["ADMIN"]
+ADMIN = int(os.environ["ADMIN"])
+TEST_USER = int(os.environ["TEST_USER"])
 
 BotConfig: dict = dict(token=BOT_TOKEN, threaded=False)
 
