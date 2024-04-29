@@ -1,16 +1,17 @@
 import logging
 from pprint import pprint
 import requests
-from requests import Response
 
 # from contextlib import asynccontextmanager
 import sqlite3
 import json
 
 import uvicorn
-from fastapi import FastAPI, Request, status
+from fastapi import FastAPI, Request, Response as FastApiResponse, status
+from fastapi.responses import JSONResponse
 from telebot import TeleBot, logger, apihelper
 from telebot.types import Message, Update, User
+from typing import TypeAlias, Optional
 
 from config import (
     BOT_TOKEN,
@@ -22,12 +23,14 @@ from config import (
     BotConfig,
     DebugBotConfig,
 )
-from db import init_admin, init_db
+from db import init_admin, init_db, create_schema, read_users, create_user
 from modules.dto import UserDto
 from modules.entity import UserEntity
-from modules.exceptions import NotAuthorized, Forbidden
+from modules.exceptions import NotAuthorized, Forbidden, AuthException
 from session import Sessionizer
 from authorizer import Authorizer
+
+
 
 
 # Bot
@@ -57,7 +60,7 @@ def help(msg: Message):
 def on_reboot(msg: Message) -> None:
     chat_id = msg.chat.id
     bot.send_message(chat_id, MSGS["reboot"])
-    response: Response = requests.get(LAMBDA_URL)
+    response: requests.Response = requests.get(LAMBDA_URL)
     data: dict = response.json()
     bot.send_message(chat_id, f"Response: {str(data)}\n")
 
@@ -65,7 +68,7 @@ def on_reboot(msg: Message) -> None:
 def show_users(msg: Message) -> None:
     # ???: measure response times
     
-    users: list[UserEntity] = db.read_users(DB_FILENAME) # db read
+    users: list[UserEntity] = read_users(DB_FILENAME) # db read
 
     bot.send_message(msg.from_user.id, json.dumps(users))
 
@@ -73,7 +76,7 @@ def show_users(msg: Message) -> None:
 def register_user(msg: Message) -> None:
     # ???: measure response times
     dto: UserDto = UserDto.from_message(msg)
-    new_user: UserEntity = db.create_user(dto, DB_FILENAME, is_admin=False) # db write
+    new_user: UserEntity = create_user(dto, DB_FILENAME, is_admin=False) # db write
 
     bot.send_message(msg.from_user.id, f"New user created:\n {json.dumps(new_user)}")
 
@@ -92,45 +95,50 @@ def run_wsgi():
     print("Wsgi has finished running!..")
 
 
-# async def lifespan(app: FastAPI):
-#     assert app
-#     print("Start app lifecycle")
-#     run_bot()
-#     init_db(db, DB_FILENAME)
-#     yield
-#     print("End app lifecycle")
-#     db.close()
-
-
-def on_startup():
+async def lifespan(app: FastAPI):
     print("Start app lifecycle")
     run_bot()
     init_db(DB_FILENAME)
-
-def on_shutdown():
-    # db.close()
-    bot.remove_webhook()
+    yield
     print("End app lifecycle")
+    # db.close()
+
+
+# def on_startup():
+#     print("Start app lifecycle")
+#     run_bot()
+#     init_db(DB_FILENAME)
+
+# def on_shutdown():
+#     # db.close()
+#     bot.remove_webhook()
+#     print("End app lifecycle")
 
 
 # APP
 app = FastAPI(
-    docs=None, redoc_url=None, on_startup=[on_startup], on_shutdown=[on_shutdown]
+    docs=None, redoc_url=None
 )
 
+@app.exception_handler(AssertionError)
+def flow_error(request: Request, exc: AssertionError) -> JSONResponse:
+    return JSONResponse(
+        status_code=500,
+        content={"error": exc}
+    )
 
 @app.get("/")
 def root() -> dict:
     return {"Hello": {"Fast": {"Api": {}}}}
 
 
-@app.post(WEBHOOK_PATH, status_code=status.HTTP_200_OK)
-def process_webhook(update: dict):
+@app.post(WEBHOOK_PATH, status_code=200, response_model=None) # pydantic doesn't like None..
+def process_webhook(update: dict, response: FastApiResponse) -> Optional[FastApiResponse]:
     print("WEBHOOK CAUGHT UPDATE!")
     assert update, "Update is empty: (webhook seems to have malfunctioned)"
     assert (upd := Update.de_json(update)), "Update is unparseable"
 
-    pprint(update)
+    # pprint(update)
     # assert isinstance(upd, Update)
     # print("update dict: ")
     # pprint(update)
@@ -149,30 +157,42 @@ def process_webhook(update: dict):
     msg: Message = upd.message
     assert msg.text, "Message is empty"
     if not msg.text.startswith("/"):
-        return None  # Not a command, ignore
+        return None # Not a command, ignore
+
+    cmd: str = msg.text.lstrip('/')
+    # if cmd not in Authorizer.cmds:
+    #     return None  # Not a command, ignore
 
     # Authorization  (who are you?)
     guest: UserDto = UserDto.from_message(msg)
     try:
         role = sessions.get_or_create_session(guest)
-    except NotAuthorized:
+    except NotAuthorized as e:
         bot.send_message(msg.from_user.id, "You cannot use this bot, sry.. :(")
-        Response.status_code = status.HTTP_401_UNAUTHORIZED
-        return None
+        return JSONResponse(
+            status_code=200,
+            content={"error": e.message}
+        )
 
     # Authentication  (what do you want?)
-    if msg.text.lstrip('/') in Authorizer.admin_cmds:
+    if cmd in Authorizer.admin_cmds:
         try:
             if not role['admin']:
                 raise Forbidden()
         except Forbidden as e:
             bot.send_message(msg.from_user.id, "You cannot run this, try another command.")
-            Response.status_code = status.HTTP_403_FORBIDDEN
-            return None
+            return JSONResponse(
+                status_code=200,
+                content={"error": e.message}
+            )
 
     # bot.process_middlewares(upd)
     print("Allowing bot to process updates")
     bot.process_new_updates([upd])
+    return JSONResponse(
+        status_code=200,
+        content={}
+    )
 
 
 def main():

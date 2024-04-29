@@ -1,8 +1,12 @@
+import http.server
 import pytest
 import datetime
 from pprint import pprint
+from http import HTTPStatus
+import json
+from typing import Literal
 
-from . import TestClient, ADMIN, WEBHOOK_URL
+from . import TestClient, ADMIN, WEBHOOK_URL, TEST_USER
 
 
 class UpdateFake(dict):
@@ -34,12 +38,16 @@ class UpdateFake(dict):
         }
 
 
-
 @pytest.mark.parametrize(
-    "cmd,id", [("/get", ADMIN), ("/garbage", ADMIN), ("/get", 42069)]
+    "cmd,id", [
+        pytest.param("/get", ADMIN),
+        pytest.param("/garbage", ADMIN),
+        pytest.param("/get", TEST_USER, marks=pytest.mark.xfail)
+    ]
 )
 def test_admin_cmd(test_client: TestClient, cmd: str, id: int):
     response = test_client.post(url=WEBHOOK_URL, json=UpdateFake(cmd, id))
-    pprint(response.json())
-    print(response.status_code)
-    assert None, "Haha, the test is going great!"
+    # pprint(response.json())
+    assert 'error' not in response.json()
+    # pprint(response.json())
+    # assert None, "Haha, the test is going great!"
