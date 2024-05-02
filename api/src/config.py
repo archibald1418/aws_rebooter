@@ -3,7 +3,7 @@ from sqlite3 import Connection
 from typing import Final
 from dotenv import load_dotenv
 
-if not load_dotenv("../../.env.dev"):
+if not load_dotenv("../.env.dev"):
     raise Exception("No envs are set")
 
 BOT_TOKEN = os.environ["BOT_TOKEN"]
