@@ -11,6 +11,10 @@ services:
      HOST: ${HOST}
     networks:
       - aws
+    volumes:
+      - users:/opt/users
+      - ./api/src:/app/src
+
   nginx:
     build:
       context: ./nginx
@@ -31,3 +35,6 @@ networks:
     name: aws
     driver: bridge
     attachable: true
+
+volumes:
+  users:

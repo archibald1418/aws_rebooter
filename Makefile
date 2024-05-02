@@ -26,7 +26,9 @@ logs:
 	${COMPOSE} logs
 
 to_nginx:
-	${COMPOSE} exec -it nginx /bin/bash
+	-${COMPOSE} exec -it nginx /bin/bash
+to_api:
+	-${COMPOSE} exec -it api /bin/sh
 
 clean: down
 	-${COMPOSE} down -v
