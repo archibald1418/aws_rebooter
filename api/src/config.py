@@ -39,6 +39,16 @@ DB_FILENAME = "users.db" if BUILD.startswith("prod") else "dev.db"
 ADMIN = int(os.environ["ADMIN"])
 TEST_USER = int(os.environ["TEST_USER"])
 
+
+
 BotConfig: dict = dict(token=BOT_TOKEN, threaded=False)
 
 DebugBotConfig = BotConfig | dict(skip_pending= True, num_threads=1)
+
+class BotCommands:
+    register: Final[list] = ['register', 'add']
+    unregister: Final[list] = ['unregister', 'delete']
+    start: Final[list] = ['start']
+    help: Final[list] = ['help']
+    reboot: Final[list] = ['reboot'] # caller only requires List :(
+    show: Final[list] = ['get', 'show']

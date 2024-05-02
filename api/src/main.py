@@ -24,6 +24,7 @@ from config import (
     DB_FILENAME,
     BotConfig,
     DebugBotConfig,
+    BotCommands
 )
 # from db import init_admin, init_db, create_schema, read_users, create_user
 import db
@@ -47,18 +48,23 @@ sessions = Sessionizer(Authorizer(DB_FILENAME))
 # Logging
 logger.setLevel(logging.INFO)
 
+def filter_test(msg: Message) -> bool:
+    print("FILTER CAUGHT")
+    pprint(msg.json)
+    return True
 
-@bot.message_handler(commands=["start"])
+@bot.message_handler(commands=BotCommands.start)
 def on_start(msg: Message):
     bot.send_message(msg.chat.id, MSGS["start"])
+    bot.send_message(msg.chat.id, MSGS["help"])
 
 
-@bot.message_handler(commands=["help"])
+@bot.message_handler(commands=BotCommands.help)
 def help(msg: Message):
     bot.send_message(msg.chat.id, MSGS["help"])
 
 
-@bot.message_handler(commands=["reboot"])
+@bot.message_handler(commands=BotCommands.reboot)
 def on_reboot(msg: Message) -> None:
     chat_id = msg.chat.id
     bot.send_message(chat_id, MSGS["reboot"])
@@ -66,10 +72,8 @@ def on_reboot(msg: Message) -> None:
     data: dict = response.json()
     bot.send_message(chat_id, f"Response: {str(data)}\n")
 
-# @bot.message_handler(commands=['register'])
-# def register_use
 
-@bot.message_handler(commands=["get"])
+@bot.message_handler(commands=BotCommands.show)
 def show_users(msg: Message) -> None:
     # ???: measure response times
     
@@ -98,7 +102,7 @@ def parse_user_id(msg: Message) -> int | None:
     new_user_id = int(user_id)
     return new_user_id
 
-@bot.message_handler(commands=["unregister", "delete"])
+@bot.message_handler(commands=BotCommands.unregister)
 def unregister_user(msg: Message) -> None:
     if not (user_id :=  parse_user_id(msg)):
         return None
@@ -114,8 +118,8 @@ def unregister_user(msg: Message) -> None:
         bot.send_message(msg.from_user.id, str(e))
         return None
 
-# TODO: study possibilities of using filters
-@bot.message_handler(commands=["register", "add"])
+# TODO: refactor to register_next_step_handler
+@bot.message_handler(commands=BotCommands.register, func=filter_test)
 def register_user(msg: Message) -> None:
     if not (new_user_id := parse_user_id(msg)):
         return None
