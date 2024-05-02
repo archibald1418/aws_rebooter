@@ -6,8 +6,8 @@ from pprint import pprint
 
 
 class UserDto:
-    def __init__(self, name, id, dttm):
-        self.name: str = name
+    def __init__(self, id, name=None, dttm=datetime.now()):
+        self.name: str = name or ''
         self.id: int = id
         self.dttm: datetime = dttm
         # id=uuid.uuid4().int >> 64
@@ -33,5 +33,4 @@ class UserDto:
         return cls(
                     name=msg.from_user.first_name,
                     id=msg.from_user.id,
-                    dttm=msg.date
         )

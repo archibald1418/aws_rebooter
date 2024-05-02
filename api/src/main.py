@@ -11,7 +11,9 @@ from fastapi import FastAPI, Request, Response as FastApiResponse, status
 from fastapi.responses import JSONResponse
 from telebot import TeleBot, logger, apihelper
 from telebot.types import Message, Update, User
+from telebot.apihelper import ApiTelegramException
 from typing import TypeAlias, Optional
+
 
 from config import (
     BOT_TOKEN,
@@ -23,7 +25,8 @@ from config import (
     BotConfig,
     DebugBotConfig,
 )
-from db import init_admin, init_db, create_schema, read_users, create_user
+# from db import init_admin, init_db, create_schema, read_users, create_user
+import db
 from modules.dto import UserDto
 from modules.entity import UserEntity
 from modules.exceptions import NotAuthorized, Forbidden, AuthException
@@ -35,7 +38,6 @@ from authorizer import Authorizer
 
 # Bot
 bot = TeleBot(**DebugBotConfig)
-
 # Database
 # db: sqlite3.Connection = sqlite3.connect(DB_FILENAME)
 # db.row_factory = UserEntity 
@@ -64,26 +66,80 @@ def on_reboot(msg: Message) -> None:
     data: dict = response.json()
     bot.send_message(chat_id, f"Response: {str(data)}\n")
 
+# @bot.message_handler(commands=['register'])
+# def register_use
+
 @bot.message_handler(commands=["get"])
 def show_users(msg: Message) -> None:
     # ???: measure response times
     
-    users: list[UserEntity] = read_users(DB_FILENAME) # db read
+    users: list[UserEntity] = db.read_users(DB_FILENAME) # db read
 
     bot.send_message(msg.from_user.id, json.dumps(users))
 
-@bot.message_handler(commands=["register"])
-def register_user(msg: Message) -> None:
-    # ???: measure response times
-    dto: UserDto = UserDto.from_message(msg)
-    new_user: UserEntity = create_user(dto, DB_FILENAME, is_admin=False) # db write
 
-    bot.send_message(msg.from_user.id, f"New user created:\n {json.dumps(new_user)}")
+def parse_user_id(msg: Message) -> int | None:
+    assert msg.entities and msg.text
+    cmdlen = msg.entities[0].length
+    if cmdlen == len(msg.text):
+        bot.send_message(msg.from_user.id, "Add a user_id to command")
+        return None
+    
+    user_id = msg.text[cmdlen:].split(maxsplit=2)[0].strip()
+    if not user_id.isnumeric() or user_id.startswith('0'):
+        bot.send_message(msg.from_user.id, "user_id should be a number")
+        return None
+    
+    try:
+        bot.send_message(user_id, f"Checking you, {user_id}") # HACK: maybe there's a better way to check for user_id validity (haven't found one yet)
+    except ApiTelegramException as e:
+        bot.send_message(msg.from_user.id, "user_id you provided is invalid")
+        return None
+    new_user_id = int(user_id)
+    return new_user_id
+
+@bot.message_handler(commands=["unregister", "delete"])
+def unregister_user(msg: Message) -> None:
+    if not (user_id :=  parse_user_id(msg)):
+        return None
+    
+    user = UserDto(user_id)
+    
+    try:
+        if db.delete_user(user, DB_FILENAME) == 0:
+            raise sqlite3.DatabaseError("User was not deleted because it was not found")
+        bot.send_message(msg.from_user.id, f"User {user_id} successfully removed")
+    except sqlite3.DatabaseError as e:
+        bot.send_message(msg.from_user.id, f"User {user_id} could not be created because of db error")
+        bot.send_message(msg.from_user.id, str(e))
+        return None
+
+# TODO: study possibilities of using filters
+@bot.message_handler(commands=["register", "add"])
+def register_user(msg: Message) -> None:
+    if not (new_user_id := parse_user_id(msg)):
+        return None
+    
+    new_user = UserDto(new_user_id)
+
+    try:
+        db.create_user(new_user, DB_FILENAME)
+        bot.send_message(msg.from_user.id, f"User {new_user_id} successfully created")
+    except sqlite3.DatabaseError as e:
+        bot.send_message(msg.from_user.id, f"User {new_user_id} could not be created because of db error")
+        bot.send_message(msg.from_user.id, str(e))
+        return None
+    
+    # ???: measure response times
+    # dto: UserDto = UserDto.from_message(msg)
+    # new_user: UserEntity = create_user(dto, DB_FILENAME, is_admin=False) # db write
+
+    # bot.send_message(msg.from_user.id, f"New user created:\n {json.dumps(new_user)}")
 
 
 def run_bot():
     bot.remove_webhook()
-    bot.set_webhook(url=WEBHOOK_URL)
+    bot.set_webhook(url=WEBHOOK_URL, drop_pending_updates=True)
     print("Bot is set up...")
     # bot.infinity_polling()
     # print("Bot has finished running")
@@ -98,21 +154,10 @@ def run_wsgi():
 async def lifespan(app: FastAPI):
     print("Start app lifecycle")
     run_bot()
-    init_db(DB_FILENAME)
+    db.init_db(DB_FILENAME)
     yield
     print("End app lifecycle")
     # db.close()
-
-
-# def on_startup():
-#     print("Start app lifecycle")
-#     run_bot()
-#     init_db(DB_FILENAME)
-
-# def on_shutdown():
-#     # db.close()
-#     bot.remove_webhook()
-#     print("End app lifecycle")
 
 
 # APP
@@ -130,6 +175,7 @@ def flow_error(request: Request, exc: AssertionError) -> JSONResponse:
 @app.get("/")
 def root() -> dict:
     return {"Hello": {"Fast": {"Api": {}}}}
+
 
 
 @app.post(WEBHOOK_PATH, status_code=200, response_model=None) # pydantic doesn't like None..
@@ -167,6 +213,7 @@ def process_webhook(update: dict, response: FastApiResponse) -> Optional[FastApi
     guest: UserDto = UserDto.from_message(msg)
     try:
         role = sessions.get_or_create_session(guest)
+        print(Sessionizer.SESSIONS)
     except NotAuthorized as e:
         bot.send_message(msg.from_user.id, "You cannot use this bot, sry.. :(")
         return JSONResponse(
@@ -204,7 +251,7 @@ def main():
 
 def polling_flow():
     print("Polling version")
-    init_db(DB_FILENAME)
+    db.init_db(DB_FILENAME)
     bot.infinity_polling()
 
 
