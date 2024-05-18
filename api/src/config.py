@@ -4,6 +4,14 @@ from typing import Final
 from dotenv import load_dotenv
 
 BUILD = os.environ.get("BUILD", "prod")
+
+if BUILD.lower().startswith("dev"):
+    if not load_dotenv("../.env.dev"):
+        raise Exception("No envs are set")
+
+BOT_TOKEN = os.environ["BOT_TOKEN"]
+LAMBDA_URL = os.environ["LAMBDA_URL"]
+
 HOST = os.environ.get("HOST", None)
 WEBHOOK_HOST = HOST
 
