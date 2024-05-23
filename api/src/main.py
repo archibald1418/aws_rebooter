@@ -4,7 +4,7 @@ import uvicorn
 
 from fastapi import FastAPI
 
-from config import (
+from .config import (
     WEBHOOK_URL,
     WEBHOOK_PATH,
 )

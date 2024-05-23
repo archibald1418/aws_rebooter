@@ -7,4 +7,9 @@ tunnel:
 test:
 	python3 -m pytest src/tests
 	# running as module enforces absolute imports
+
+build:
+	sudo docker build . -t api-test
+run: build
+	sudo docker run api-test
 re: clean all

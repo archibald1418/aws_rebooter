@@ -1,9 +1,9 @@
 *.sh
 *.json
 venv
-__pycache__
-**/tests
-conftest.py
+*/__pycache__
+*/tests
+*/conftest.py
 **/.cache
 Pipfile
 Pipfile.lock

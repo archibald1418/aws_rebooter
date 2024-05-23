@@ -10,18 +10,24 @@ from telebot.apihelper import ApiTelegramException
 
 from contextlib import asynccontextmanager
 
-from modules.dto import UserDto
-from modules.exceptions import NotAuthorized, Forbidden
+from .modules.dto import UserDto
+from .modules.exceptions import NotAuthorized, Forbidden
 
 
-from bot import run_bot
-from session import Sessionizer
-from authorizer import Authorizer
-from config import DB_FILENAME, WEBHOOK_PATH
+from .bot import run_bot
+from .session import Sessionizer
+from .authorizer import Authorizer
+from .config import DB_FILENAME, WEBHOOK_PATH
 
-import db
+from . import db
+
+import os, sys
+from pprint import pprint
 
 logger.setLevel(logging.INFO)
+
+def _sys_info():
+    pprint(sys.path)
 
 
 @asynccontextmanager
@@ -72,6 +78,8 @@ def run_app() -> FastAPI:
 
         # Authorization  (who are you?)
         guest: UserDto = UserDto.from_message(msg)
+        print("Hello, guest!: ")
+        pprint(guest.to_dict())
         try:
             role = sessions.get_or_create_session(guest)
             print(Sessionizer.SESSIONS)

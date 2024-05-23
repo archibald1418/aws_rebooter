@@ -1,8 +1,8 @@
 import sqlite3
 from sqlite3 import Cursor
-from modules.dto import UserDto
-from modules.entity import UserEntity, UserModel
-from config import ADMIN
+from .modules.dto import UserDto
+from .modules.entity import UserEntity, UserModel
+from .config import ADMIN
 
 
 def create_schema(cursor: Cursor): 

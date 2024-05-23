@@ -9,9 +9,9 @@ COPY ./src ./src
 
 VOLUME /opt/users
 
-CMD uvicorn src.main:app --host 0.0.0.0 --port 8000 \
+CMD uvicorn src.app:run_app --host 0.0.0.0 --port 8000 \
         --reload \
-        --proxy-headers
+        --proxy-headers \
         --forwarded-allow-ips='*'
 # allows proxying
 

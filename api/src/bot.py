@@ -2,7 +2,7 @@ import requests
 import json
 import sqlite3
 
-from config import (
+from .config import (
     DebugBotConfig, 
     BotCommands,
     MSGS,
@@ -13,11 +13,10 @@ from config import (
 from telebot import TeleBot
 from telebot.types import Message
 
-from modules.dto import UserDto
-from modules.entity import UserEntity
+from .modules.dto import UserDto
+from .modules.entity import UserEntity
 
-import db
-import utils
+from . import db, utils
 
 def run_bot() -> TeleBot:
 

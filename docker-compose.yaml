@@ -1,14 +1,16 @@
 services:
   api:
+    image: api
     build:
       context: ./api
       dockerfile: Dockerfile
-        #    - port=8000 TODO: cmd from shell script, script reads port no
     container_name: api
     environment:
      BOT_TOKEN: ${BOT_TOKEN}
      LAMBDA_URL: ${LAMBDA_URL}
      HOST: ${HOST}
+     ADMIN: ${ADMIN}
+     TEST_USER: ${TEST_USER}
     networks:
       - aws
     volumes:
@@ -17,6 +19,7 @@ services:
     restart: unless-stopped
 
   nginx:
+    image: nginx
     build:
       context: ./nginx
       dockerfile: Dockerfile

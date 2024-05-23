@@ -1,8 +1,8 @@
 from typing import Protocol, Any
 import sqlite3
-from modules.dto import UserDto
-from modules.entity import UserEntity
-from db import read_user, create_user # TODO: repo class
+from .modules.dto import UserDto
+from .modules.entity import UserEntity
+from .db import read_user, create_user # TODO: repo class
 
 
 class Authorizer:
