@@ -3,7 +3,7 @@
 
 FLAGS="--debug -v --nginx -d $HOST --register-unsafely-without-email"
 
-if [ $BUILD == 'dev' ]; then
+if [ $BUILD = 'dev' ]; then
 	FLAGS+= " --test-cert"
 fi
 
@@ -18,6 +18,7 @@ fi
 
 service nginx stop
 
+echo 'Starting nginx...'
 if ! nginx -g 'daemon off;'; then
     echo 'Nginx failed'
     echo 'keep-alive container'
