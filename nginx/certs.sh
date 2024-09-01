@@ -1,9 +1,17 @@
 #!/bin/sh
 
+
+FLAGS="--debug -v --nginx -d $HOST --register-unsafely-without-email"
+
+if [ $BUILD == 'dev' ]; then
+	FLAGS+= " --test-cert"
+fi
+
+
 if [ ! -d /etc/letsencrypt/live/$HOST ]; then
     envsubst '${HOST}' < template.conf > /etc/nginx/conf.d/default.conf;
-    yes 'y' | certbot -v --nginx -d $HOST --register-unsafely-without-email;
-    # > Subscribers may register up to 10 accounts per IP address every 3 hours
+    yes 'y' | certbot $FLAGS
+	# TODO: test script with --staging
 else
     echo 'Certs already installed'
 fi

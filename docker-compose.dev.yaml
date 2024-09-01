@@ -1,0 +1,47 @@
+services:
+  api:
+    image: api
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: api
+    environment:
+     BOT_TOKEN: ${BOT_TOKEN}
+     LAMBDA_URL: ${LAMBDA_URL}
+     HOST: ${HOST}
+     ADMIN: ${ADMIN}
+     TEST_USER: ${TEST_USER}
+     #BUILD: ''
+    networks:
+      - aws
+    volumes:
+      - /app/db
+      - ./api/src:/app/src
+    restart: unless-stopped
+    #command: tail -f /dev/null
+
+  nginx:
+    image: nginx
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      HOST: ${HOST}
+      BUILD: 'dev'
+    networks:
+      - aws
+    depends_on:
+      - api
+    restart: unless-stopped
+    #command: tail -f /dev/null
+
+networks:
+  aws:
+    name: aws
+    driver: bridge
+    attachable: true
+
