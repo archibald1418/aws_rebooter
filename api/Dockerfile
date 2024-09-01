@@ -12,6 +12,7 @@ VOLUME /opt/users
 CMD uvicorn src.app:run_app --host 0.0.0.0 --port 8000 \
         --reload \
         --proxy-headers \
-        --forwarded-allow-ips='*'
+        --forwarded-allow-ips='*' \
+	--log-config='src/log_conf.yaml'
 # allows proxying
 
