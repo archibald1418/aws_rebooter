@@ -33,7 +33,9 @@ WEBHOOK_URL = f"{WEBHOOK_HOST or ''}{WEBHOOK_PATH}"
 WEBHOOK_LISTEN = "0.0.0.0"
 
 
+DB_DIR = "/app/db/"
 DB_FILENAME = "users.db" if BUILD.startswith("prod") else "dev.db"
+DB_PATH = f"{DB_DIR}{DB_FILENAME}"
 ADMIN = int(os.environ["ADMIN"])
 TEST_USER = int(os.environ["TEST_USER"])
 

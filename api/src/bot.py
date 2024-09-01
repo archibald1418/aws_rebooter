@@ -7,7 +7,7 @@ from .config import (
     BotCommands,
     MSGS,
     LAMBDA_URL,
-    DB_FILENAME,
+    DB_PATH,
     WEBHOOK_URL
 )
 from telebot import TeleBot
@@ -46,7 +46,7 @@ def run_bot() -> TeleBot:
     def show_users(msg: Message) -> None:
         # ???: measure response times
         
-        users: list[UserEntity] = db.read_users(DB_FILENAME) # db read
+        users: list[UserEntity] = db.read_users(DB_PATH) # db read
 
         bot.send_message(msg.from_user.id, json.dumps(users))
 
@@ -59,7 +59,7 @@ def run_bot() -> TeleBot:
         user = UserDto(user_id)
         
         try:
-            if db.delete_user(user, DB_FILENAME) == 0:
+            if db.delete_user(user, DB_PATH) == 0:
                 raise sqlite3.DatabaseError("User was not deleted because it was not found")
             bot.send_message(msg.from_user.id, f"User {user_id} successfully removed")
         except sqlite3.DatabaseError as e:
@@ -76,7 +76,7 @@ def run_bot() -> TeleBot:
         new_user = UserDto(new_user_id)
 
         try:
-            db.create_user(new_user, DB_FILENAME)
+            db.create_user(new_user, DB_PATH)
             bot.send_message(msg.from_user.id, f"User {new_user_id} successfully created")
         except sqlite3.DatabaseError as e:
             bot.send_message(msg.from_user.id, f"User {new_user_id} could not be created because of db error")

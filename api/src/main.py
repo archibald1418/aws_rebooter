@@ -22,7 +22,6 @@ def run_wsgi():
 
 def main():
     print("MAIN")
-    # init_db(db, DB_FILENAME) <- an extra process locks an sqlite db
     run_wsgi()
 
 

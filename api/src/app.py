@@ -17,7 +17,7 @@ from .modules.exceptions import NotAuthorized, Forbidden
 from .bot import run_bot
 from .session import Sessionizer
 from .authorizer import Authorizer
-from .config import DB_FILENAME, WEBHOOK_PATH
+from .config import DB_PATH, WEBHOOK_PATH
 
 from . import db
 
@@ -34,7 +34,7 @@ def _sys_info():
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, Any]:
     print("Start app lifecycle")
 
-    db.init_db(DB_FILENAME)
+    db.init_db(DB_PATH)
     yield
     print("End app lifecycle")
 
@@ -47,7 +47,7 @@ def run_app() -> FastAPI:
     )
 
     bot = run_bot()
-    sessions = Sessionizer(Authorizer(DB_FILENAME))
+    sessions = Sessionizer(Authorizer(DB_PATH))
     
     @app.exception_handler(AssertionError)
     def flow_error(request: Request, exc: AssertionError) -> JSONResponse:
