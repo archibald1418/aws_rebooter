@@ -18,7 +18,8 @@ stop:
 start:
 	${COMPOSE} start
 rawdog:
-	${COMPOSE} up --build --no-cache -d
+	${COMPOSE} build --no-cache
+	$(MAKE) up
 ps:
 	${COMPOSE} ps
 
