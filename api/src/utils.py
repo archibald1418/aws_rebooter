@@ -16,9 +16,10 @@ def process_user_id(bot: TeleBot, msg: Message) -> int | None:
         return None
     
     try:
-        bot.send_message(user_id, f"Checking you, {user_id}") # HACK: maybe there's a better way to check for user_id validity (haven't found one yet)
+        bot.send_message(user_id, f"Checking your user_id") # HACK: maybe there's a better way to check for user_id validity (haven't found one yet)
     except ApiTelegramException as e:
         bot.send_message(msg.from_user.id, "user_id you provided is invalid")
         return None
+
     new_user_id = int(user_id)
     return new_user_id

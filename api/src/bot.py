@@ -1,6 +1,7 @@
 import requests
 import json
 import sqlite3
+from time import sleep
 
 from .config import (
     DebugBotConfig, 
@@ -12,6 +13,7 @@ from .config import (
 )
 from telebot import TeleBot
 from telebot.types import Message
+from .session import Sessionizer
 
 from .modules.dto import UserDto
 from .modules.entity import UserEntity
@@ -53,7 +55,7 @@ def run_bot() -> TeleBot:
 
     @bot.message_handler(commands=BotCommands.unregister)
     def unregister_user(msg: Message) -> None:
-        if not (user_id :=  utils.process_user_id(bot, msg)):
+        if not (user_id := utils.process_user_id(bot, msg)):
             return None
         
         user = UserDto(user_id)
@@ -61,6 +63,8 @@ def run_bot() -> TeleBot:
         try:
             if db.delete_user(user, DB_PATH) == 0:
                 raise sqlite3.DatabaseError("User was not deleted because it was not found")
+            Sessionizer.SESSIONS.pop(user_id, None)
+            bot.send_message(user_id, f"You've been kicked out of the bot") # HACK: maybe there's a better way to check for user_id validity (haven't found one yet)
             bot.send_message(msg.from_user.id, f"User {user_id} successfully removed")
         except sqlite3.DatabaseError as e:
             bot.send_message(msg.from_user.id, f"User {user_id} could not be created because of db error")
@@ -78,6 +82,7 @@ def run_bot() -> TeleBot:
         try:
             db.create_user(new_user, DB_PATH)
             bot.send_message(msg.from_user.id, f"User {new_user_id} successfully created")
+            bot.send_message(new_user_id, f"You're accepted! Use /help to view commands") # HACK: maybe there's a better way to check for user_id validity (haven't found one yet)
         except sqlite3.DatabaseError as e:
             bot.send_message(msg.from_user.id, f"User {new_user_id} could not be created because of db error")
             bot.send_message(msg.from_user.id, str(e))
@@ -86,7 +91,20 @@ def run_bot() -> TeleBot:
         # ???: measure response times
 
     bot.remove_webhook() # ext api call
-    bot.set_webhook(url=WEBHOOK_URL, drop_pending_updates=True) # ext api call
+
+    # TODO: test this for when WEBHOOK_URL is not a valid secure-https endpoint
+    retries = 0
+    while True:
+        try:
+            bot.set_webhook(url=WEBHOOK_URL, drop_pending_updates=True) # ext api call
+        except:
+            if retries > 30:
+                raise;
+            print("Failed to set webhook, retrying...")
+            sleep(1)
+            retries += 1
+        else:
+            break
     print("Bot is set up...")
 
     return bot

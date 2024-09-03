@@ -7,7 +7,7 @@ from .db import read_user, create_user # TODO: repo class
 
 class Authorizer:
     
-    admin_cmds = frozenset({'register', 'get'})
+    admin_cmds = frozenset({'register', 'get', 'show', 'delete', 'add'})
     regular_cmds = frozenset({'start', 'help', 'reboot'})
     cmds = admin_cmds | regular_cmds
 
