@@ -16,6 +16,8 @@ services:
     volumes:
       - /app/db
       - ./api/src:/app/src
+    depends_on:
+      - nginx
     restart: unless-stopped
     #command: tail -f /dev/null
 
@@ -32,8 +34,8 @@ services:
       HOST: ${HOST}
     networks:
       - aws
-    depends_on:
-      - api
+        # fastapi should start first <= setWebhook needs working domain
+        # nginx should start first <= it resolves to fastapi
     restart: unless-stopped
     #command: tail -f /dev/null
 
