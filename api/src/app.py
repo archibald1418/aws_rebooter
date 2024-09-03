@@ -1,10 +1,10 @@
-from fastapi import FastAPI, Request, Response as FastApiResponse, status, logger
+from fastapi import FastAPI, Request, Response as FastApiResponse, status
 from fastapi.responses import JSONResponse
 
 import logging
 from typing import AsyncGenerator, Optional, Any
 
-from telebot import TeleBot, logger, apihelper
+from telebot import TeleBot, logger as tglogger, apihelper
 from telebot.types import Message, Update, User
 from telebot.apihelper import ApiTelegramException
 
@@ -22,9 +22,9 @@ from .config import DB_PATH, WEBHOOK_PATH
 from . import db
 
 import os, sys
-from pprint import pprint
+from pprint import pprint, pformat
 
-logger.setLevel(logging.INFO)
+#tglogger.setLevel(logging.INFO)
 
 def _sys_info():
     pprint(sys.path)
@@ -45,7 +45,7 @@ def run_app() -> FastAPI:
         docs=None, redoc_url=None,
         lifespan=lifespan
     )
-
+    logger = logging.getLogger('uvicorn.error')
     bot = run_bot()
     sessions = Sessionizer(Authorizer(DB_PATH))
     
@@ -79,10 +79,13 @@ def run_app() -> FastAPI:
         # Authorization  (who are you?)
         guest: UserDto = UserDto.from_message(msg)
         print("Hello, guest!: ")
-        pprint(guest.to_dict())
+        #pprint(guest.to_dict())
+        #logger.log(msg=pformat(guest.to_dict()), level=logging.INFO) 
         try:
             role = sessions.get_or_create_session(guest)
-            print(Sessionizer.SESSIONS)
+            logger.log(msg=cmd, level=logging.INFO)
+            #print(Sessionizer.SESSIONS)
+            logger.log(msg=pformat(Sessionizer.SESSIONS), level=logging.INFO)
         except NotAuthorized as e:
             bot.send_message(msg.from_user.id, "You cannot use this bot, sry.. :(")
             return JSONResponse(
@@ -105,6 +108,7 @@ def run_app() -> FastAPI:
         # bot.process_middlewares(upd)
         print("Allowing bot to process updates")
         bot.process_new_updates([upd])
+        print("Updates processed ok")
         return JSONResponse(
             status_code=200,
             content={}

@@ -9,10 +9,15 @@ COPY ./src ./src
 
 VOLUME ./db
 
-CMD uvicorn src.app:run_app --host 0.0.0.0 --port 8000 \
+# dev build
+CMD uvicorn src.app:run_app --host 0.0.0.0 --port 8000  \
         --reload \
-        --proxy-headers \
         --forwarded-allow-ips='*' \
-	--log-config='src/log_conf.yaml'
-# allows proxying
+        --proxy-headers
 
+# TODO: this should be a production build
+#CMD gunicorn src.app:run_app -b 0.0.0.0:8000  \
+         -w 4
+#        -k uvicorn_worker.UvicornWorker \
+#        --forwarded-allow-ips='*' \
+#        --capture-output
